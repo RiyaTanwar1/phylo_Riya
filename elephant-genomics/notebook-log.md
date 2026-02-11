@@ -32,3 +32,19 @@ FastQC was run using the following command:
 
 ```bash
 fastqc ERR361996_1.fq.gz ERR361996_2.fq.gz
+
+---
+
+## 4. Stage of the Dataset
+
+The dataset consists of raw paired-end Illumina sequencing reads for Asian elephants.  
+
+Because the reads are raw, they require quality control before any downstream analysis such as assembly or variant calling.  
+
+**Quality Control:** FastQC was used to check the quality of the raw reads. FastQC evaluates:
+
+- Per-base sequence quality
+- GC content
+- Adapter contamination
+- Sequence duplication levels
+- Overrepresented sequences
