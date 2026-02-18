@@ -48,3 +48,67 @@ Because the reads are raw, they require quality control before any downstream an
 - Adapter contamination
 - Sequence duplication levels
 - Overrepresented sequences
+
+---
+
+## 5. Project Revision: Dataset Change
+
+The original project aimed to analyze whole-genome sequencing (WGS) data from Asian elephants using raw Illumina FASTQ reads. However, due to computational constraints and the scope of this assignment (which focuses on multiple sequence alignment methods), the dataset was revised.
+
+Instead of raw WGS reads, a curated dataset of complete mitochondrial genome sequences was selected. This dataset is more appropriate for evaluating multiple sequence alignment methods and constructing phylogenetic relationships.
+
+---
+
+## 6. Mitochondrial Genome Dataset
+
+A dataset consisting of 10 complete mitochondrial genome sequences (~16–17 kb each) was compiled from NCBI GenBank. Taxa include:
+
+- Elephas maximus  
+- Loxodonta africana
+- Loxodonta cyclotis  
+- Mammuthus primigenius  
+
+All sequences were downloaded in FASTA format and combined into a single multi-FASTA file for alignment.
+
+---
+
+## 7. Alignment Method Selection
+
+The Alignathon study indicates that no single alignment method performs best across all datasets. Performance depends on sequence divergence, dataset size, and structural complexity.
+
+Because this dataset consists of moderately similar mitochondrial genomes and contains 10 sequences, MUSCLE was selected as the alignment method.
+
+---
+
+## 8. Alignment Method: MUSCLE v3.8.31
+
+MUSCLE (Edgar 2004) performs multiple sequence alignment using:
+
+1. K-mer based pairwise distance estimation  
+2. Guide tree construction  
+3. Progressive alignment  
+4. Iterative refinement  
+
+---
+
+### Assumptions
+
+- Sequences are homologous mitochondrial genomes  
+- No major structural rearrangements  
+- Evolution is primarily substitution-driven  
+
+---
+
+### Limitations
+
+- May not perform as well on highly divergent datasets  
+- Structural RNA regions may not be optimally aligned  
+- Only one MSA method was tested for this homework  
+
+---
+
+### Command Used
+
+```powershell
+& "C:\Users\Riya Tanwar\Downloads\muscle3.8.31_i86win32.exe" -in "elephant_mtDNA_all.fasta" -out "elephant_mtDNA_aligned.fasta"
+
