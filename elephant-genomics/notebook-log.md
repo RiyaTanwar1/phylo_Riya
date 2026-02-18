@@ -48,3 +48,4 @@ Because the reads are raw, they require quality control before any downstream an
 - Adapter contamination
 - Sequence duplication levels
 - Overrepresented sequences
+
