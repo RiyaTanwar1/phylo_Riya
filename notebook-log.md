@@ -60,7 +60,7 @@ MUSCLE (Edgar 2004) performs multiple sequence alignment using:
 
 ```powershell
 & "C:\Users\Riya Tanwar\Downloads\muscle3.8.31_i86win32.exe" -in "elephant_mtDNA_all.fasta" -out "elephant_mtDNA_aligned.fasta"
-
+```
 
 
 
