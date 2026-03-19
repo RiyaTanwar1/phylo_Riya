@@ -178,3 +178,22 @@ Parsimony may be sensitive to long-branch attraction
 Both methods assume homologous aligned sequences
 
 Because mitochondrial genomes are relatively small (~16–17 kb) and moderately conserved, both approaches are computationally feasible and appropriate for this dataset.
+
+10. Maximum Likelihood Phylogenetic Analysis using IQ-TREE
+
+Description:
+IQ-TREE uses a maximum likelihood approach to infer phylogenetic trees. It searches for the tree topology that maximizes the probability of the observed sequence data under a model of sequence evolution. It uses efficient tree search algorithms and ModelFinder to select the best substitution model.
+
+Assumptions: Sequences are homologous and correctly aligned Sites evolve independently. Evolution follows a substitution model (e.g., GTR). The process is stationary, reversible, and homogeneous. 
+
+Limitations: Sensitive to alignment errors, computationally intensive for large datasets, model misspecification can bias results, may get stuck in local optima.
+
+# Run IQ-TREE (version 3)
+
+$iqtree = ".\iqtree-3.0.1-Windows\iqtree-3.0.1-Windows\bin\iqtree3.exe"
+
+& $iqtree `
+  -s .\data\elephant_mtDNA_aligned.fasta `
+  -m MFP `
+  -bb 1000 `
+  -alrt 1000
