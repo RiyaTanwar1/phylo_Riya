@@ -250,3 +250,53 @@ $iqtree = ".\iqtree-3.0.1-Windows\iqtree-3.0.1-Windows\bin\iqtree3.exe"
   -m MFP `
   -bb 1000 `
   -alrt 1000
+
+
+### 11. Bayesian Phylogenetic Analysis using MrBayes
+
+Description:
+Bayesian phylogenetic inference estimates the posterior probability distribution of trees given the observed sequence data and a substitution model. MrBayes implements a Markov Chain Monte Carlo (MCMC) approach to sample trees according to their posterior probability. This method provides statistical support for clades in the form of posterior probabilities.
+
+Assumptions:
+
+Sequences are homologous and correctly aligned
+Sites evolve independently
+Evolutionary process is stationary, reversible, and homogeneous
+The substitution model (here HKY + gamma) appropriately describes nucleotide evolution
+
+Limitations:
+
+Computationally intensive for large datasets
+Sensitive to alignment errors and model misspecification
+Requires careful assessment of MCMC convergence and sufficient burn-in
+MrBayes Command Block
+
+begin mrbayes;
+    set autoclose=yes;
+    prset brlenspr=unconstrained:exp(10.0);
+    prset shapepr=exp(1.0);
+    prset tratiopr=beta(1.0,1.0);
+    prset statefreqpr=dirichlet(1.0,1.0,1.0,1.0);
+    lset nst=2 rates=gamma ngammacat=4;
+    mcmcp ngen=1000000 samplefreq=50 printfreq=500 nruns=2 nchains=4 savebrlens=yes;
+    outgroup Anacystis_nidulans;
+    mcmc;
+    sumt burnin=12500;
+end;
+
+Explanation of Parameters
+ngen = 1,000,000: Increases the number of MCMC generations for better convergence of posterior distributions.
+samplefreq = 50: Samples every 50 generations to reduce output file size while retaining sufficient resolution.
+printfreq = 500: Prints MCMC progress less frequently to avoid clutter.
+nruns = 2: Two independent MCMC runs allow comparison of results to assess convergence.
+nchains = 4: Uses one cold chain and three heated chains to improve mixing and escape local optima.
+sumt burnin = 12,500: Discards the first 25% of sampled trees as burn-in to ensure only post-convergence trees are summarized.
+outgroup = Anacystis_nidulans: Rooting the tree with an outgroup allows proper directionality in the phylogeny.
+
+Output:
+
+A majority-rule consensus tree with posterior probabilities for each clade.
+Estimated branch lengths and support values for interpretation of evolutionary relationships among Asian elephant mitochondrial genomes.
+
+Rationale:
+Bayesian inference complements the NJ and parsimony analyses, providing a probabilistic framework that accounts for uncertainty in tree topology and branch lengths. Given the small size and moderate divergence of the mitochondrial genome dataset, this approach is computationally feasible and yields robust posterior support for clades.
