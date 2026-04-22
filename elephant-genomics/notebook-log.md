@@ -300,3 +300,49 @@ Estimated branch lengths and support values for interpretation of evolutionary r
 
 Rationale:
 Bayesian inference complements the NJ and parsimony analyses, providing a probabilistic framework that accounts for uncertainty in tree topology and branch lengths. Given the small size and moderate divergence of the mitochondrial genome dataset, this approach is computationally feasible and yields robust posterior support for clades.
+
+
+### 12. ASTRAL Analysis
+
+ASTRAL (Accurate Species TRee ALgorithm) is a summary coalescent method that estimates a species tree from a set of gene trees. Instead of concatenating sequences, ASTRAL uses quartet-based inference, this means it evaluates relationships among all sets of four taxa and finds the species tree that agrees with the largest number of gene tree quartets.
+
+This approach is grounded in coalescent theory, which models how gene lineages trace back through time and accounts for incomplete lineage sorting (ILS)—a common source of discordance between gene trees and species trees.
+
+Assumptions
+Gene trees are correctly estimated (or at least not heavily biased)
+Discordance among gene trees is primarily due to incomplete lineage sorting (ILS)
+No significant effects from:
+Horizontal gene transfer
+Hybridization
+Gene duplication/loss (ASTRAL assumes one copy per species per gene)
+Loci are independent
+
+Strengths
+Handles large genomic datasets efficiently
+Statistically consistent under the multispecies coalescent model
+More robust than concatenation when ILS is high
+Does not require sequence alignments, only gene trees
+
+Limitations
+Sensitive to gene tree estimation error
+Cannot explicitly model hybridization or introgression
+Assumes no paralogs (single-copy genes)
+Support values are local posterior probabilities, not traditional bootstrap
+
+Commands Used 
+Step 1: Download ASTRAL
+git clone https://github.com/smirarab/ASTRAL.git
+cd ASTRAL
+
+Step 2: Run ASTRAL on toy dataset
+java -jar astral.5.7.8.jar \
+ -i song_mammals.424.gene.tre \
+ -o song-astral.tre
+
+Step 3: Reading the Tree in R
+library(ape)
+
+tre <- read.tree("song-astral.tre")
+plot(tre)
+
+nodelabels(text = tre$node.label)
