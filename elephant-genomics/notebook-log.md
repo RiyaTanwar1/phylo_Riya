@@ -4,6 +4,20 @@ Author: Riya Tanwar
 Date Started: February 2026  
 
 ---
+## 0. Software and Operating System 
+The following software and package versions were used in this analysis:
+
+- FastQC v0.12.1
+- MUSCLE v3.8.31
+- IQ-TREE v3.0.1
+- MrBayes v3.2.7
+- R v4.5.0
+- ape R package v5.8
+- phangorn R package v2.12.1
+- adegenet R package v2.1.11
+
+Analyses were performed on a Windows 11 system using PowerShell, RStudio, and command-line tools.
+---
 
 ## 1. Dataset Selection
 
@@ -64,12 +78,21 @@ Instead of raw WGS reads, I chose to use  complete mitochondrial genome sequence
 
 A dataset consisting of 10 complete mitochondrial genome sequences (~16–17 kb each) was compiled from NCBI GenBank. Taxa include:
 
-- Elephas maximus  
-- Loxodonta africana  
-- Loxodonta cyclotis
-- Mammuthus primigenius  
+AJ428946.1        Asian Elephant (Elephas maximus)
+EF588275.2        Asian Elephant (Elephas maximus)
+NC_005129.2       Asian Elephant (Elephas maximus)
+DQ316068.1        Asian Elephant (Elephas maximus)
 
-All sequences were downloaded in FASTA format and combined into a single multi-FASTA file for alignment.
+AP008987.1        Woolly Mammoth (Mammuthus primigenius)
+MF770243.1        Woolly Mammoth (Mammuthus primigenius)
+
+NC_020759.1       African Forest Elephant (Loxodonta cyclotis)
+JN673263.1        African Forest Elephant (Loxodonta cyclotis)
+
+NC_000934.1       African Bush Elephant (Loxodonta africana)
+DQ316069.1        African Bush Elephant (Loxodonta africana)  
+
+All sequences were downloaded in FASTA format and combined into a single multi-FASTA file for alignment: elephant_mtDNA_all.fasta. 
 
 ---
 
@@ -120,7 +143,7 @@ MUSCLE (Edgar 2004) performs multiple sequence alignment using:
 #### 9.1 Distance-Based Tree (Neighbor-Joining)
 Algorithm Used: Neighbor-Joining (NJ)
 
-The Neighbor-Joining algorithm (Saitou & Nei 1987), implemented in the ape package, is a distance-based method that constructs a tree from a matrix of pairwise genetic distances.
+The Neighbor-Joining algorithm, implemented in the ape package in R, is a distance-based phylogenetic method that reconstructs trees from a matrix of pairwise genetic distances. In this analysis, genetic distances were calculated using the Tamura-Nei 1993 (TN93) substitution model with the dist.dna() function, after which taxa were iteratively joined to minimize total branch length.
 
 Steps:
 
@@ -152,19 +175,28 @@ Produces an unrooted tree
 
 Does not explicitly model character evolution during tree search
 
-Code
+Code in R
+#### Load in Packages
+library(ape)
+
+#### Load in genetic data
+dna <- read.dna("elephant_mtDNA_aligned.fasta", format="fasta")
+
 #### Calculate genetic distances using TN93 model
 D <- dist.dna(dna, model="TN93")
 
 #### Construct Neighbor-Joining tree
 tre_nj <- nj(D)
 
+#### Root using Woolly Mammoth (MF770243.1)
+tre_nj <- root(tre_nj, outgroup = "MF770243.1", resolve.root = TRUE)
+
 #### Improve visualization
 tre_nj <- ladderize(tre_nj)
 
 #### Plot
 plot(tre_nj, cex=0.6)
-title("Neighbor-Joining Tree (TN93 distances)")
+title("Neighbor-Joining Tree")
 
 #### 9.2 Parsimony-Based Tree
 Algorithm Used: Maximum Parsimony
@@ -201,7 +233,13 @@ Can become computationally expensive for large datasets
 
 May be less accurate when substitution rates vary across lineages
 
-Code
+Code in R
+#### Load in Packages
+library(phangorn)
+
+#### Load in genetic data
+dna <- read.dna("elephant_mtDNA_aligned.fasta", format="fasta")
+
 #### Convert alignment for parsimony analysis
 dna2 <- as.phyDat(dna)
 
@@ -213,6 +251,9 @@ parsimony(tre_ini, dna2)
 
 #### Optimize tree under maximum parsimony
 tre_pars <- optim.parsimony(tre_ini, dna2)
+
+#### Root
+tre_pars <- root(tre_pars, outgroup = "MF770243.1", resolve.root = TRUE)
 
 #### Plot
 plot(tre_pars, cex=0.6)
@@ -251,6 +292,29 @@ $iqtree = ".\iqtree-3.0.1-Windows\iqtree-3.0.1-Windows\bin\iqtree3.exe"
   -bb 1000 `
   -alrt 1000
 
+In R: 
+tre_iqtree <- read.tree("*.treefile")
+
+tre_iqtree <- root(
+  tre_iqtree,
+  outgroup = "MF770243.1",
+  resolve.root = TRUE
+)
+
+plot(ladderize(tre_iqtree), cex=0.6)
+title("IQ-TREE Maximum Likelihood Tree (Rooted)")
+
+Additional Explanation: 
+What each parameter in the code means: 
+m MFP	is a ModelFinder automatic model selection
+bb 1000	is ultrafast bootstrap replicates
+alrt 1000	is SH-aLRT branch support
+
+What each output file means: 
+.treefile	is the final ML tree
+.iqtree has the	model statistics
+.log is the run log
+.contree	has the consensus tree
 
 ### 11. Bayesian Phylogenetic Analysis using MrBayes
 
@@ -273,15 +337,16 @@ MrBayes Command Block
 
 begin mrbayes;
     set autoclose=yes;
-    prset brlenspr=unconstrained:exp(10.0);
-    prset shapepr=exp(1.0);
-    prset tratiopr=beta(1.0,1.0);
-    prset statefreqpr=dirichlet(1.0,1.0,1.0,1.0);
-    lset nst=2 rates=gamma ngammacat=4;
-    mcmcp ngen=1000000 samplefreq=50 printfreq=500 nruns=2 nchains=4 savebrlens=yes;
-    outgroup Anacystis_nidulans;
+
+    lset nst=2 rates=gamma;
+
+    outgroup MF770243.1;
+
+    mcmcp ngen=1000000 samplefreq=50 printfreq=500
+          nruns=2 nchains=4;
+
     mcmc;
-    sumt burnin=12500;
+    sumt burnin=5000;
 end;
 
 Explanation of Parameters
@@ -290,8 +355,8 @@ samplefreq = 50: Samples every 50 generations to reduce output file size while r
 printfreq = 500: Prints MCMC progress less frequently to avoid clutter.
 nruns = 2: Two independent MCMC runs allow comparison of results to assess convergence.
 nchains = 4: Uses one cold chain and three heated chains to improve mixing and escape local optima.
-sumt burnin = 12,500: Discards the first 25% of sampled trees as burn-in to ensure only post-convergence trees are summarized.
-outgroup = Anacystis_nidulans: Rooting the tree with an outgroup allows proper directionality in the phylogeny.
+sumt burnin = 5,000: Discards the first 25% of sampled trees as burn-in to ensure only post-convergence trees are summarized.
+outgroup = MF770243.1 (Woolly Mammoth), rooting the trees consistently to allow comparison.
 
 Output:
 
@@ -302,7 +367,7 @@ Rationale:
 Bayesian inference complements the NJ and parsimony analyses, providing a probabilistic framework that accounts for uncertainty in tree topology and branch lengths. Given the small size and moderate divergence of the mitochondrial genome dataset, this approach is computationally feasible and yields robust posterior support for clades.
 
 
-### 12. ASTRAL Analysis
+### 12. ASTRAL Analysis (NOT USED FOR THIS PROJECT, below is purely for example purposes)
 
 ASTRAL (Accurate Species TRee ALgorithm) is a summary coalescent method that estimates a species tree from a set of gene trees. Instead of concatenating sequences, ASTRAL uses quartet-based inference, this means it evaluates relationships among all sets of four taxa and finds the species tree that agrees with the largest number of gene tree quartets.
 
